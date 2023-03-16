@@ -14,3 +14,7 @@ dependencyResolutionManagement {
 }
 rootProject.name = "summernote"
 include ':app'
+
+
+include ':opencv470'
+include ':opencv'

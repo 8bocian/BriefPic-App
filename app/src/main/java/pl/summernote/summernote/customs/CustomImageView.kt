@@ -1,4 +1,4 @@
-package pl.summernote.summernote.views
+package pl.summernote.summernote.customs
 
 import android.content.Context
 import android.graphics.Canvas

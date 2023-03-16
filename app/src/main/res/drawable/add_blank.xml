@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#e0e0e0" />
+        </shape>
+    </item>
+
+    <!-- Horizontal line of the plus sign -->
+    <item
+        android:width="50dp"
+        android:height="10dp"
+        android:gravity="center">
+        <shape android:shape="rectangle">
+            <solid android:color="#ff7600" />
+        </shape>
+    </item>
+
+    <!-- Vertical line of the plus sign -->
+    <item
+        android:width="10dp"
+        android:height="50dp"
+        android:gravity="center">
+        <shape android:shape="rectangle">
+            <solid android:color="#ff7600" />
+        </shape>
+    </item>
+
+</layer-list>

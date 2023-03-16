@@ -7,4 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="button">#5da5d8</color>
+    <color name="text">#333333</color>
+    <color name="logging_bg">#23408e</color>
+    <color name="carousel_bg">#333333</color>
+    <color name="plus_ico">#ff7600</color>
+    <color name="plus_bg">#e0e0e0</color>
 </resources>

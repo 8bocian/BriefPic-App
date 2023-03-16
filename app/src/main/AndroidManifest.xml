@@ -15,6 +15,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Summernote"
         tools:targetApi="31" >
+
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="ocr">
+
+        </meta-data>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -40,10 +47,23 @@
                 android:value="" />
         </activity>
         <activity
+            android:name=".activities.CollectionsActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan"
+            android:exported="true">
+        </activity>
+        <activity
+            android:name=".activities.ElementsActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan"
+            android:exported="true">
+        </activity>
+        <activity
             android:name=".activities.MainActivity"
             android:screenOrientation="portrait"
             android:exported="true">
         </activity>
+
     </application>
 
 
