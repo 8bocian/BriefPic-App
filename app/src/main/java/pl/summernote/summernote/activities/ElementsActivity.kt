@@ -1,7 +1,9 @@
 package pl.summernote.summernote.activities
 
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
+import android.animation.ObjectAnimator
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -10,22 +12,19 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
-import android.text.method.ScrollingMovementMethod
 import android.util.Log
-import android.view.Gravity
-import android.view.LayoutInflater
 import android.view.View
-import android.widget.LinearLayout
-import android.widget.PopupWindow
-import android.widget.TextView
+import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityOptionsCompat
-import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -45,7 +44,6 @@ import pl.summernote.summernote.interfaces.ApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.io.File
-import java.io.FileOutputStream
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -57,7 +55,6 @@ class ElementsActivity : AppCompatActivity() {
     }
 
     private lateinit var utils: Utils
-
 
     private lateinit var elementsArrayList: ArrayList<Element>
     private lateinit var photoURI: Uri
@@ -76,6 +73,7 @@ class ElementsActivity : AppCompatActivity() {
         binding = ElementsCarouselLayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+
         collectionName = intent.getStringExtra("collectionName").toString()
 
         supportActionBar?.hide()
@@ -85,7 +83,7 @@ class ElementsActivity : AppCompatActivity() {
         elementsIntent = Intent(this, MainActivity::class.java)
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        binding.recyclerView.setHasFixedSize(false)
+        binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.isNestedScrollingEnabled = false
         val bundle = Bundle().apply {
             putString("textPath", "$cacheDir/collections/$collectionName/texts/main.txt")
@@ -141,9 +139,53 @@ class ElementsActivity : AppCompatActivity() {
         }
         getElements(elementsArrayList)
         scrollToLastPosition()
+
+        binding.recyclerView.adapter = adapter
+        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.UP) {
+            private val swipeThreshold = 1f // Set the swipe threshold to half the item's height
+
+            override fun onMove(v: RecyclerView, h: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
+
+            override fun onSwiped(h: RecyclerView.ViewHolder, dir: Int) {
+                val position = h.absoluteAdapterPosition
+                val view = h.itemView
+
+                // Calculate the vertical displacement of the swiped item
+                val swipeHeight = view.height.toFloat() * swipeThreshold
+                val currentHeight = view.translationY
+                val targetHeight = if (currentHeight < 0) -swipeHeight else swipeHeight
+
+                // Check if the swiped item has passed the swipe threshold
+                if (Math.abs(currentHeight) >= swipeHeight) {
+                    // If the item has passed the threshold, animate it off the screen
+                    val animator = ObjectAnimator.ofFloat(view, "translationY", currentHeight, targetHeight)
+                    animator.duration = 300
+                    animator.addListener(object : AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: Animator) {
+                            adapter.removeItem(position)
+                        }
+                    })
+                    animator.start()
+                } else {
+                    // If the item has not passed the threshold, animate it back to its original position
+                    val animator = ObjectAnimator.ofFloat(view, "translationY", currentHeight, 0f)
+                    animator.duration = 300
+                    animator.start()
+                }
+            }
+            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
+                val position = viewHolder.absoluteAdapterPosition
+                return if (position == adapter.itemCount - 1) 0 else super.getSwipeDirs(recyclerView, viewHolder)
+            }
+        }).attachToRecyclerView(binding.recyclerView)
+
+
     }
 
     private suspend fun sendRequest(text: String) {
+        runOnUiThread {
+            binding.progress.visibility = View.VISIBLE
+        }
         val gson = GsonBuilder()
             .setLenient()
             .create()
@@ -180,6 +222,7 @@ class ElementsActivity : AppCompatActivity() {
         }
         withContext(Dispatchers.Main) {
             saveText(response)
+            binding.progress.visibility = View.GONE
             bottomSheetFragment.show(supportFragmentManager, "noteTag")
         }
     }

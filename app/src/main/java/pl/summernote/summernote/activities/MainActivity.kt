@@ -122,6 +122,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.sendButton.setOnClickListener {
+            runOnUiThread {
+                binding.progress.visibility = View.VISIBLE
+            }
             var points = binding.imageView.points
             if (points.isEmpty()){
                 points = mutableListOf(Point((imageBitmap.width/2).toFloat(), (imageBitmap.height/2).toFloat()))
@@ -133,6 +136,7 @@ class MainActivity : AppCompatActivity() {
                 val processedText = processResult(outputText)
                 withContext(Dispatchers.Main) {
                     saveText(processedText)
+                    binding.progress.visibility = View.GONE
                 }
             }
         }

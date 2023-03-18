@@ -24,14 +24,13 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = LoginActivityBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        supportActionBar?.hide();
+        supportActionBar?.hide()
 
         utils = Utils()
 
         val file = File(cacheDir, "collections")
         file.mkdirs()
         val directories = file.listFiles { file -> file.isDirectory}
-
         directories?.forEach { directory ->
             Log.d("DIRCOL",directory.name)
         }
@@ -41,7 +40,6 @@ class LoginActivity : AppCompatActivity() {
 
         if (!myDirectory.exists()) {
             myDirectory.mkdir()
-
         }
 
         binding.loginButton.setOnClickListener {

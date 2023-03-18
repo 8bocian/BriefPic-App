@@ -9,7 +9,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import pl.summernote.summernote.R
 import pl.summernote.summernote.Utils
@@ -21,69 +23,67 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 
-class ElementsAdapter(private val elementsList: ArrayList<Element>,
-                         private val cacheDir: File, private val context: Context) :
-    RecyclerView.Adapter<ElementsAdapter.ViewHolder>() {
+class ElementsAdapter(
+    private val elementsList: ArrayList<Element>,
+    private val cacheDir: File,
+    private val context: Context
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private lateinit var nListener: onItemClickListener
-    private var lastPosition = elementsList.size - 1
 
     init {
         var exists = false
-        for(collection in elementsList){
-            if(collection.imagePath == "predef/blank.jpeg"){
+        for (collection in elementsList) {
+            if (collection.imagePath == "predef/blank.jpeg") {
                 exists = true
                 break
             }
         }
         if (!exists) {
             elementsList.add(Element("predef/blank.jpeg"))
-            lastPosition = elementsList.size - 1
         }
     }
-
-
 
     interface onItemClickListener {
         fun onItemClick(view: View, position: Int, x: Int, y: Int)
     }
 
-    fun setOnItemClickListener(listener: onItemClickListener){
+    fun setOnItemClickListener(listener: onItemClickListener) {
         nListener = listener
     }
 
-    class ViewHolder(itemView: View, listener: onItemClickListener, lastPosition: Int) : RecyclerView.ViewHolder(itemView) {
-        val imageView: ImageView = itemView.findViewById(R.id.image_view)
-
-        init {
-            itemView.setOnClickListener{view ->
-                listener.onItemClick(view, adapterPosition, 0, 0)
-            }
+    override fun getItemViewType(position: Int): Int {
+        return if (position == elementsList.size - 1) {
+            VIEW_TYPE_ADD
+        } else {
+            VIEW_TYPE_ITEM
         }
     }
 
-
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val itemView = LayoutInflater.from(parent.context)
-            .inflate(R.layout.element_layout, parent, false)
-        return ViewHolder(itemView, nListener, lastPosition)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val itemView = when (viewType) {
+            VIEW_TYPE_ADD -> LayoutInflater.from(parent.context)
+                .inflate(R.layout.element_layout, parent, false)
+            else -> LayoutInflater.from(parent.context)
+                .inflate(R.layout.element_layout, parent, false)
+        }
+        return ViewHolder(itemView, nListener)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        if(position != elementsList.size-1) {
-
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        holder.itemView.isLongClickable = true;
+        if (position != elementsList.size - 1) {
             val currentItem = elementsList[position]
-
             val file1 = File(cacheDir, currentItem.imagePath)
             val file = File(file1.path)
             val fis = FileInputStream(file)
             val bitmap = BitmapFactory.decodeStream(fis)
-
-            holder.imageView.setImageBitmap(Utils().rotateImage(bitmap))
-        } else {
-            holder.imageView.setBackgroundResource(R.drawable.add_blank)
+            (holder as ViewHolder).imageView.setImageBitmap(Utils().rotateImage(bitmap))
         }
+    }
+
+    override fun getItemCount(): Int {
+        return elementsList.size
     }
 
     fun addItem(path: String) {
@@ -91,7 +91,25 @@ class ElementsAdapter(private val elementsList: ArrayList<Element>,
         notifyItemInserted(elementsList.size - 2)
     }
 
-    override fun getItemCount(): Int {
-        return elementsList.size
+    fun removeItem(position: Int) {
+        elementsList.removeAt(position)
+        notifyItemRemoved(position)
+    }
+
+    inner class ViewHolder(itemView: View, listener: onItemClickListener) :
+        RecyclerView.ViewHolder(itemView) {
+        val imageView: ImageView = itemView.findViewById(R.id.image_view)
+
+        init {
+            itemView.setOnClickListener { view ->
+                listener.onItemClick(view, adapterPosition, 0, 0)
+            }
+        }
+    }
+
+    companion object {
+        private const val VIEW_TYPE_ITEM = 0
+        private const val VIEW_TYPE_ADD = 1
     }
 }
+
