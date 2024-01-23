@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">BriefPic</string>
-    <string name="web_client_id">728933764869-1g74ottdgpvielpbk78rjop4iom0f3pj.apps.googleusercontent.com</string>
+    <string name="web_client_id"></string>
     <string name="nav_drawer_open">dwa</string>
     <string name="nav_drawer_close">jeden</string>
     <string-array name="options">
@@ -8,9 +8,9 @@
         <item>Notes</item>
     </string-array>
 
-    <string name="facebook_app_id">760145718893423</string>
-    <string name="fb_login_protocol_scheme">fb760145718893423</string>
-    <string name="facebook_client_token">499ed17a9a8e1c503708d1b6f462aa22</string>
+    <string name="facebook_app_id"></string>
+    <string name="fb_login_protocol_scheme"></string>
+    <string name="facebook_client_token"></string>
 
 
 
