@@ -1,29 +1,29 @@
-# BriefPic - Tworzenie Fiszek ze Zdjęć Słówek
+# BriefPic - Flashcard Creation from Wordbook Images
 
-## Opis
+## Description
 
-**BriefPic** to aplikacja na platformę Android napisana w języku Kotlin, umożliwiająca użytkownikom tworzenie fiszek ze słówek z podręcznika za pomocą zdjęć. Aplikacja jest dostępna do pobrania na [Sklepie Play](https://play.google.com/store/apps/details?id=pl.summernote.summernote).
+**BriefPic** is an Android application written in Kotlin that allows users to create flashcards from textbook word images. The app is available for download on the [Play Store](https://play.google.com/store/apps/details?id=pl.summernote.summernote).
 
-## Funkcje
+## Features
 
-- **Szybkie Tworzenie Fiszek:** Korzystając z aparatu, użytkownicy mogą łatwo tworzyć fiszki ze zdjęć zawierających słówka z podręcznika.
+- **Quick Flashcard Creation:** Users can easily create flashcards from images containing words from textbooks using the camera.
 
-- **Edycja i Kategoryzacja:** Aplikacja umożliwia użytkownikom edycję fiszek, dodawanie kategorii oraz sortowanie fiszek zgodnie z preferencjami.
+- **Editing and Categorization:** The app enables users to edit flashcards and add categories according to their preferences.
 
-- **Nauka Interaktywna:** Tryb nauki umożliwia interaktywne zapamiętywanie słówek poprzez quizy oparte na wcześniej stworzonych fiszkach.
+- **Interactive Learning:** The learning mode facilitates interactive memorization of words through quizzes based on previously created flashcards.
 
-## Instalacja
+## Installation
 
-Aplikację można pobrać bezpośrednio ze [Sklepu Play](https://play.google.com/store/apps/details?id=pl.summernote.summernote).
+You can download the application directly from the [Play Store](https://play.google.com/store/apps/details?id=pl.summernote.summernote).
 
-## Kontrybucje
+## Contributions
 
-Chętnie przyjmujemy kontrybucje! Jeśli masz pomysły na ulepszenia, zgłoś nowy "issue" lub stwórz "pull request".
+We welcome contributions! If you have ideas for improvements, please raise a new "issue" or create a "pull request."
 
-## Autor
+## Author
 
 Oskar **"Bocian"** Możdżeń
 
-## Licencja
+## License
 
-Ten projekt jest objęty licencją MIT. Zobacz plik [LICENSE.md](LICENSE.md), aby uzyskać więcej informacji.
+This project is licensed under the MIT License. See the [LICENSE.md](LICENSE.md) file for more information.
