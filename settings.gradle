@@ -12,7 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "summernote"
+rootProject.name = "briefpic"
 include ':app'
 
 

@@ -13,4 +13,15 @@
     <color name="carousel_bg">#333333</color>
     <color name="plus_ico">#ff7600</color>
     <color name="plus_bg">#e0e0e0</color>
+    <color name="color1">#E97777</color>
+    <color name="color2">#F1F7B5</color>
+    <color name="color3">#B6E2A1</color>
+    <color name="color4">#A8D1D1</color>
+    <color name="color5">#9EA1D4</color>
+    <color name="appBar">#505050</color>
+    <color name="betterWhite">#FFFDFA</color>
+    <color name="flashcard">#6c8dfa</color>
+    <color name="hintColor">#cacaca</color>
+    <color name="lightBlue">#7EABE2</color>
+    <color name="lightBlue2">#0cc0df</color>
 </resources>

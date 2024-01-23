@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:clickable="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/carousel_bg"
     android:fitsSystemWindows="true"
     android:focusableInTouchMode="true"
+    android:transitionName="toBackground"
     android:id="@+id/elements_carousel_layout">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -29,68 +30,160 @@
             app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/constraintLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:clickable="false"
         android:id="@+id/constraintLayout"
         android:layout_width="match_parent"
-        android:layout_height="160dp"
-        android:layout_gravity="bottom"
+        android:layout_height="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:clickable="false"
+            android:textColor="#FF000000"
+            android:layout_marginStart="10dp"
+            android:id="@+id/icon"
+            android:textSize="30dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:textAlignment="center"
+            android:scaleType="centerCrop"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/title" />
+
+        <TextView
+            android:clickable="false"
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLength="30"
+            android:maxLines="2"
+            android:padding="20dp"
+            android:text="chemia"
+            android:textAlignment="textStart"
+            android:textColor="@color/betterWhite"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/elements_count"
+            app:layout_constraintStart_toEndOf="@+id/icon"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <TextView
+            android:clickable="false"
+            android:id="@+id/elements_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:text="20 zestawów"
+            android:textAlignment="textStart"
+            android:textColor="@color/betterWhite"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:clickable="false"
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingBottom="40dp"
         android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
+
+    <TextView
+        android:clickable="false"
+        android:id="@+id/greeting2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="40dp"
+        android:text="Click the button below to create your first set of flashcards!"
+        android:textSize="20sp"
+        android:textAlignment="center"
+        android:textColor="#d2d2d2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/constraintLayout" />
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:clickable="false"
+        android:id="@+id/coordinatorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.5" />
-
-        <com.google.android.material.slider.RangeSlider
-            android:id="@+id/length_slider"
+        <com.google.android.material.bottomappbar.BottomAppBar
+            android:clickable="false"
+            android:id="@+id/app_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:valueFrom="0"
-            android:valueTo="100"
-            app:labelBehavior="gone"
-            android:backgroundTint="@color/button"
-            app:layout_constraintBottom_toTopOf="@+id/createNoteButton"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:layout_gravity="bottom"
+            android:backgroundTint="@color/appBar"
+            app:fabCradleMargin="10dp"
+            app:fabCradleRoundedCornerRadius="20dp">
+            <ImageButton
+                android:id="@+id/menu_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/transparent"
+                android:src="@drawable/ic_baseline_menu_24"
+                android:contentDescription="menu"
+                />
+        </com.google.android.material.bottomappbar.BottomAppBar>
 
-        <Button
-            android:id="@+id/showNoteButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/button"
-            android:text="Show note"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/guideline"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.4" />
 
-        <Button
-            android:id="@+id/createNoteButton"
-            android:layout_width="0dp"
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/add_element"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:backgroundTint="@color/button"
-            android:text="Create Note"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/guideline"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.4" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_margin="24dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_anchor="@+id/app_bar"
+            app:layout_anchorGravity="right"
+            android:backgroundTint="@color/lightBlue"
+            app:srcCompat="@drawable/plus_icon" />
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <ImageView
+        android:clickable="false"
+        android:id="@+id/my_image1"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:background="@drawable/circle_gradient"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:translationX="120dp"
+        android:translationY="-320dp"
+        android:translationZ="-10dp"/>
+
+    <ImageView
+        android:clickable="false"
+        android:id="@+id/my_image2"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:background="@drawable/circle_gradient"
+        app:layout_constraintStart_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:translationX="-230dp"
+        android:translationY="-500dp"
+        android:translationZ="-10dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:clickable="false"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/carousel_bg"
+    android:fitsSystemWindows="true"
+    android:focusableInTouchMode="true"
+    android:transitionName="toBackground"
+    android:id="@+id/elements_carousel_layout">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#40000000"
+        android:translationZ="999dp"
+        android:id="@+id/progress"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:clickable="false"
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:clickable="false"
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLength="30"
+            android:maxLines="2"
+            android:padding="20dp"
+            android:text="chemia"
+            android:textAlignment="textStart"
+            android:textColor="@color/betterWhite"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/elements_count"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <TextView
+            android:clickable="false"
+            android:id="@+id/elements_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="20dp"
+            android:text="flashcards: 20"
+            android:textAlignment="textStart"
+            android:textColor="@color/betterWhite"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/add_flashcard"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/add_flashcard"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_margin="20dp"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:background="@android:color/transparent"
+            app:icon="@drawable/plus_icon"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp"
+            app:iconTint="@color/betterWhite"
+            app:layout_constraintBottom_toBottomOf="@+id/elements_count"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/elements_count"
+            app:shapeAppearanceOverlay="@style/roundButton" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:clickable="false"
+        android:id="@+id/recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:paddingBottom="40dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/constraintLayout" />
+
+    <TextView
+        android:id="@+id/greeting3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:orientation="vertical"
+        android:padding="40dp"
+        android:text="Click the button above to create your flashcards!"
+        android:textAlignment="center"
+        android:textColor="#d2d2d2"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/coordinatorLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/constraintLayout" />
+
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:clickable="false"
+        android:id="@+id/coordinatorLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.bottomappbar.BottomAppBar
+            android:clickable="false"
+            android:id="@+id/app_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:backgroundTint="@color/appBar"
+            app:fabCradleMargin="10dp"
+            app:fabCradleRoundedCornerRadius="20dp">
+            <ImageButton
+                android:id="@+id/menu_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/transparent"
+                android:src="@drawable/ic_baseline_menu_24"
+                android:contentDescription="menu"
+                />
+        </com.google.android.material.bottomappbar.BottomAppBar>
+
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/study"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="24dp"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_anchor="@+id/app_bar"
+            app:layout_anchorGravity="right"
+            android:backgroundTint="@color/lightBlue"
+            app:srcCompat="@drawable/ic_baseline_school_24" />
+
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <ImageView
+        android:clickable="false"
+        android:id="@+id/my_image1"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:background="@drawable/circle_gradient"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:translationX="120dp"
+        android:translationY="-320dp"
+        android:translationZ="-10dp"/>
+
+    <ImageView
+        android:clickable="false"
+        android:id="@+id/my_image2"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:background="@drawable/circle_gradient"
+        app:layout_constraintStart_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:translationX="-230dp"
+        android:translationY="-500dp"
+        android:translationZ="-10dp"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

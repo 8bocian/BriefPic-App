@@ -2,20 +2,31 @@
     <!-- Base application theme. -->
     <style name="Theme.Summernote" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/logging_bg</item>
-        <item name="colorPrimaryVariant">@color/logging_bg</item>
+        <item name="colorPrimary">@color/carousel_bg</item>
+        <item name="colorPrimaryVariant">@color/carousel_bg</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/logging_bg</item>
-        <item name="colorSecondaryVariant">@color/logging_bg</item>
+        <item name="colorSecondary">@color/carousel_bg</item>
+        <item name="colorSecondaryVariant">@color/carousel_bg</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="android:navigationBarColor">@color/appBar</item>
     </style>
     <style name="roundedImageView" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">20dp</item>
         <item name="borderWidth">10dp</item>
+    </style>
+    <style name="roundButton" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
+    <style name="element_border">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+        <item name="strokeWidth">20dp</item>
+        <item name="strokeColor">@android:color/black</item>
     </style>
 </resources>

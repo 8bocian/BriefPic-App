@@ -1,110 +1,205 @@
 package pl.summernote.summernote.activities
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ObjectAnimator
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.Gravity
+import android.util.Log
 import android.view.View
-import android.view.animation.AnimationUtils
-import android.widget.LinearLayout
-import android.widget.PopupWindow
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.view.ViewCompat
-import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.appcompat.widget.PopupMenu
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
+import com.facebook.appevents.AppEventsLogger
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
+import com.google.android.material.shape.CornerFamily
+import com.google.android.material.shape.MaterialShapeDrawable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import pl.summernote.summernote.R
-import pl.summernote.summernote.Utils
 import pl.summernote.summernote.adapters.CollectionsAdapter
-import pl.summernote.summernote.databinding.CollectionsCarouselLayoutBinding
-import pl.summernote.summernote.databinding.PopupWindowCollectionsBinding
+import pl.summernote.summernote.customs.FlowSender
+import pl.summernote.summernote.databinding.CollectionCarouselLayoutBinding
 import pl.summernote.summernote.dataclasses.Collection
+import pl.summernote.summernote.fragments.AddCollectionDialogFragment
+import pl.summernote.summernote.fragments.AddCollectionDialogListener
+import pl.summernote.summernote.fragments.ChangeCollectionDialogListener
 import java.io.File
-import kotlin.collections.ArrayList
+import java.util.*
 
 
-class CollectionsActivity : AppCompatActivity() {
-
-    private lateinit var utils: Utils
-
+class CollectionsActivity : AppCompatActivity(), AddCollectionDialogListener, ChangeCollectionDialogListener {
 
     private lateinit var collectionsArrayList: ArrayList<Collection>
     private lateinit var adapter: CollectionsAdapter
-    private lateinit var elementsIntent: Intent
 
-    private lateinit var binding: CollectionsCarouselLayoutBinding
-    private lateinit var bindingPopUp: PopupWindowCollectionsBinding
+    private lateinit var subjectsIntent: Intent
+
+    private lateinit var binding: CollectionCarouselLayoutBinding
+    private var uuidString: String? = null
+
+    override fun onStop() {
+        super.onStop()
+        Log.d("DUPAJAJ", "STOPCIOR")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = CollectionsCarouselLayoutBinding.inflate(layoutInflater)
+        binding = CollectionCarouselLayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()
 
-        utils = Utils()
+        val sharedPrefs: SharedPreferences = this.baseContext.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        uuidString = sharedPrefs.getString("UUID", null)
 
-        elementsIntent = Intent(this, ElementsActivity::class.java)
+        if (uuidString == null) {
+            val uuid = UUID.randomUUID().toString()
+            with(sharedPrefs.edit()) {
+                putString("UUID", uuid)
+                apply()
+            }
+        }
+        uuidString = sharedPrefs.getString("UUID", null)
 
-        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+
+        subjectsIntent = Intent(this, ElementsActivity::class.java)
+        val myDirectory = File(cacheDir, "collections")
+
+        val logger = AppEventsLogger.newLogger(this)
+        logger.logEvent("sentFriendRequest");
+
+        if (!myDirectory.exists()) {
+            myDirectory.mkdir()
+        }
+        val bottomBarBackground = binding.appBar.background as MaterialShapeDrawable
+        bottomBarBackground.shapeAppearanceModel = bottomBarBackground.shapeAppearanceModel
+            .toBuilder()
+            .setTopLeftCorner(CornerFamily.ROUNDED, 80f)
+            .setTopRightCorner(CornerFamily.ROUNDED, 80f)
+            .build()
+
+        binding.recyclerView.layoutManager = GridLayoutManager(this, 2)
         binding.recyclerView.setHasFixedSize(false)
         collectionsArrayList = arrayListOf()
 
         val directoryName = "collections"
         val subDirectory = File(cacheDir, directoryName)
-        subDirectory.mkdir()
         if (subDirectory.exists() && subDirectory.isDirectory) {
-            val subDirectories = subDirectory.listFiles { file ->
-                file.isDirectory
-            }
+            val subDirectories = subDirectory.listFiles()?.filter { it.isDirectory }
 
-            for (subDir in subDirectories!!) {
-                collectionsArrayList.add(Collection(subDir.name))
+            val subDirsSorted = subDirectories?.sortedByDescending { it.name }
+            subDirsSorted?.forEach { subDir ->
+                    Log.d("SUBDIRNAME", subDir.name)
+
+                    val lastIndex = subDir.name.split('_').lastIndex
+                    val icon: String = subDir.name.split('_')[lastIndex]
+                    val name: String = subDir.name.split('_')[lastIndex-1]
+                    val position: Int = subDir.name.substringBefore('_').toInt()
+                    collectionsArrayList.add(0, Collection(name, icon, position))
             }
         }
+
+        if (collectionsArrayList.isNotEmpty()){
+            binding.greeting1.visibility = View.GONE
+        }
+
         getCollections(collectionsArrayList)
         scrollToLastPosition()
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.UP) {
-            private val swipeThreshold = 1f // Set the swipe threshold to half the item's height
 
-            override fun onMove(v: RecyclerView, h: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
+        binding.addCollection.setOnClickListener{
+            val popupDialogFragment = AddCollectionDialogFragment()
+            popupDialogFragment.listener = this
+            val args = Bundle()
+            args.putStringArrayList("names", adapter.getNames())
+            popupDialogFragment.arguments = args
+            popupDialogFragment.show(supportFragmentManager, "popup_dialog_fragment")
+        }
 
-            override fun onSwiped(h: RecyclerView.ViewHolder, dir: Int) {
-                val position = h.absoluteAdapterPosition
-                val view = h.itemView
+        binding.menuButton.setOnClickListener { menuItem ->
 
-                // Calculate the vertical displacement of the swiped item
-                val swipeHeight = view.height.toFloat() * swipeThreshold
-                val currentHeight = view.translationY
-                val targetHeight = if (currentHeight < 0) -swipeHeight else swipeHeight
-
-                // Check if the swiped item has passed the swipe threshold
-                if (Math.abs(currentHeight) >= swipeHeight) {
-                    // If the item has passed the threshold, animate it off the screen
-                    val animator = ObjectAnimator.ofFloat(view, "translationY", currentHeight, targetHeight)
-                    animator.duration = 300
-                    animator.addListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            adapter.removeItem(position)
+            val popupMenu = PopupMenu(this@CollectionsActivity, binding.menuButton)
+            popupMenu.menuInflater.inflate(R.menu.menu_drawer, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.menu_item_logout -> {
+                        finish()
+                        true
+                    }
+                    R.id.menu_item_licenses -> {
+                        //                    val intent = Intent(this, LicensesActivity::class.java)
+                        //                    startActivity(intent)
+                        startActivity(Intent(this, OssLicensesMenuActivity::class.java))
+                        true
+                    }
+                    R.id.menu_item_delete -> {
+                        val yesno = PopupMenu(this@CollectionsActivity, binding.menuButton)
+                        yesno.menuInflater.inflate(R.menu.menu_yes_no, yesno.menu)
+                        yesno.setOnMenuItemClickListener { item ->
+                            when (item.itemId) {
+                                R.id.confirm -> {
+                                    lifecycleScope.launch(Dispatchers.IO) {
+                                    }
+                                    true
+                                }
+                                R.id.decline -> {
+                                    true
+                                }
+                                else -> {false}
+                            }
                         }
-                    })
-                    animator.start()
-                } else {
-                    // If the item has not passed the threshold, animate it back to its original position
-                    val animator = ObjectAnimator.ofFloat(view, "translationY", currentHeight, 0f)
-                    animator.duration = 300
-                    animator.start()
+                        yesno.show()
+                        true
+                    }
+                    else -> {false}
                 }
             }
-            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
-                val position = viewHolder.absoluteAdapterPosition
-                return if (position == adapter.itemCount - 1) 0 else super.getSwipeDirs(recyclerView, viewHolder)
-            }
-        }).attachToRecyclerView(binding.recyclerView)
+            popupMenu.show()
+        }
+        binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
+    }
 
+    override fun onCollectionChanged(collectionNameNew: String, collectionIconNew: String, collectionNameOld: String, collectionIconOld: String, index: Int) {
+        val realPosition = adapter.getItem(index)
+        adapter.changeItem(collectionNameNew, collectionIconNew, index)
+        changeCollection("${realPosition}_${collectionNameNew}_${collectionIconNew}", "${index}_${collectionNameOld}_${collectionIconOld}")
+    }
+
+    private fun changeCollection(collectionNameNew: String, collectionNameOld: String){
+        val path = File(cacheDir, "collections/$collectionNameNew")
+        val pathNew = File(cacheDir, "collections/$collectionNameOld")
+        Log.d("RENAMEPATH", path.path)
+        Log.d("RENAMEPATH", pathNew.path)
+        pathNew.renameTo(path)
+
+        val directory = File(cacheDir, "collections")
+        val directories = directory.listFiles { file -> file.isDirectory() }
+        directories.forEach {
+            Log.d("RENAMEPATH", it.name)
+        }
+    }
+
+    override fun onCollectionRemoved(collectionNameOld: String, collectionIconOld: String, index: Int) {
+        val realPosition = adapter.getItem(index)
+        adapter.removeItem(index)
+        removeCollection(collectionNameOld, collectionIconOld, realPosition)
+        if (adapter.itemCount == 0) binding.greeting1.visibility = View.VISIBLE
+    }
+
+    private fun removeCollection(collectionNameOld: String, collectionIconOld: String, collectionPosition: Int){
+        val path = File(cacheDir, "collections/${collectionPosition}_${collectionNameOld}_${collectionIconOld}")
+        path.deleteRecursively()
+    }
+
+    override fun onCollectionAdded(collectionName: String, collectionIcon: String) {
+        val nextPosition = adapter.getItem(adapter.itemCount-1)+1
+        adapter.addItem(collectionName, collectionIcon, nextPosition)
+        saveCollection(collectionName, collectionIcon, nextPosition)
+        binding.greeting1.visibility = View.GONE
+    }
+
+    private fun saveCollection(name: String, icon: String, position: Int){
+        val path = File(cacheDir, "collections/${position}_${name}_${icon}")
+        path.mkdir()
     }
 
     private fun scrollToLastPosition() {
@@ -114,63 +209,30 @@ class CollectionsActivity : AppCompatActivity() {
 
     private fun getCollections(collections: ArrayList<Collection>){
         collectionsArrayList = collections
-        adapter = CollectionsAdapter(collectionsArrayList, cacheDir, context = baseContext)
+        collectionsArrayList.forEach {
+            Log.d("RESULT", it.name)
+        }
+
+        adapter = CollectionsAdapter(collectionsArrayList, supportFragmentManager, baseContext)
         adapter.setOnItemClickListener(object: CollectionsAdapter.onItemClickListener{
             override fun onItemClick(view: View, position: Int, x: Int, y: Int) {
-                if(position == adapter.itemCount-1) {
-                    val animation = AnimationUtils.loadAnimation(view.context, R.anim.pulse)
-                    view.startAnimation(animation)
-                    showPopup(x, y)
-                } else {
-                    elementsIntent.putExtra("collectionName", collectionsArrayList[position].name)
-                    startActivity(elementsIntent)
-                    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-                }
+                view.setClickable(false)
+                subjectsIntent.putExtra(
+                    "collectionName",
+                    "${position}_${collectionsArrayList[position].name}_${collectionsArrayList[position].icon}"
+                )
+                startActivity(subjectsIntent)
+                overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
             }
-
         })
         binding.recyclerView.adapter = adapter
     }
 
-    private fun showPopup(x: Int, y: Int) {
-        bindingPopUp = PopupWindowCollectionsBinding.inflate(layoutInflater)
-
-        val popupWindow = PopupWindow(
-            bindingPopUp.root,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-            LinearLayout.LayoutParams.WRAP_CONTENT,
-        )
-        popupWindow.isOutsideTouchable = true
-        popupWindow.isFocusable = true
-
-        bindingPopUp.addCollectionButton.setOnClickListener {
-            val name = bindingPopUp.textView.text.toString()
-            var isDuplicate = false
-
-            for(i in collectionsArrayList.indices){
-                if (collectionsArrayList[i].name == name) {
-                    isDuplicate = true
-                    break
-                }
-            }
-
-             if (name == "") {
-                Toast.makeText(this, "Name of the collection must not be empty!", Toast.LENGTH_SHORT).show()
-            } else if (isDuplicate){
-                 Toast.makeText(this, "Name of the collection must not duplicate!", Toast.LENGTH_SHORT).show()
-            } else {
-                 val collectionDir = File(cacheDir, "collections/$name")
-                 collectionDir.mkdirs()
-                 adapter.addItem(name)
-                 popupWindow.dismiss()
-             }
-        }
-
-        popupWindow.showAtLocation(
-            findViewById(android.R.id.content),
-            Gravity.CENTER,
-            x,
-            y
-        )
+    override fun onResume() {
+        super.onResume()
+        val flowSender = FlowSender()
+        val sharedPrefs: SharedPreferences = this@CollectionsActivity.baseContext.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val uuidString = sharedPrefs.getString("UUID", null)
+        flowSender.sendFlowInformation(this.javaClass.simpleName, uuidString!!, "ENTER")
     }
 }

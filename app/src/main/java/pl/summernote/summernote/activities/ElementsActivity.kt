@@ -1,239 +1,210 @@
 package pl.summernote.summernote.activities
 
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
-import android.animation.ObjectAnimator
-import android.app.Activity
+import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
+import android.content.SharedPreferences
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.view.View
-import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.app.ActivityCompat
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.content.FileProvider
-import androidx.core.view.ViewCompat
+import androidx.appcompat.view.menu.ActionMenuItemView
+import androidx.appcompat.widget.PopupMenu
+import androidx.core.view.GravityCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.google.gson.GsonBuilder
+//import com.google.android.gms.auth.api.signin.GoogleSignIn
+//import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.oss.licenses.OssLicensesMenuActivity
+import com.google.android.material.shape.CornerFamily
+import com.google.android.material.shape.MaterialShapeDrawable
+import com.google.android.material.shape.RelativeCornerSize
+import com.google.android.material.shape.RoundedCornerTreatment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.FormBody
 import okhttp3.OkHttpClient
-import okhttp3.RequestBody.Companion.toRequestBody
-import org.json.JSONObject
-import pl.summernote.summernote.BuildConfig
+import okhttp3.Request
 import pl.summernote.summernote.R
-import pl.summernote.summernote.Utils
 import pl.summernote.summernote.adapters.ElementsAdapter
+import pl.summernote.summernote.adapters.OnListChangedListener
+import pl.summernote.summernote.customs.FlowSender
 import pl.summernote.summernote.databinding.ElementsCarouselLayoutBinding
 import pl.summernote.summernote.dataclasses.Element
-import pl.summernote.summernote.fragments.BottomSheetFragment
-import pl.summernote.summernote.interfaces.ApiService
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
+import pl.summernote.summernote.fragments.AddElementDialogFragment
+import pl.summernote.summernote.fragments.AddElementDialogListener
+import pl.summernote.summernote.fragments.ChangeElementDialogListener
 import java.io.File
-import java.io.InputStream
-import java.util.*
 import java.util.concurrent.TimeUnit
 
-class ElementsActivity : AppCompatActivity() {
-    companion object {
-        const val REQUEST_IMAGE_CAPTURE = 1
-        const val REQUEST_IMAGE_SELECT = 2
-    }
 
-    private lateinit var utils: Utils
+class ElementsActivity : AppCompatActivity(), AddElementDialogListener, ChangeElementDialogListener {
 
     private lateinit var elementsArrayList: ArrayList<Element>
-    private lateinit var photoURI: Uri
-    private lateinit var imageBitmap: Bitmap
     private lateinit var adapter: ElementsAdapter
     private lateinit var elementsIntent: Intent
-    private lateinit var bottomSheetFragment: BottomSheetFragment
 
     private lateinit var collectionName: String
-    private var lengthValue: Float = 0f
 
     private lateinit var binding: ElementsCarouselLayoutBinding
+
+    override fun onResume() {
+        super.onResume()
+        val flowSender = FlowSender()
+        val sharedPrefs: SharedPreferences = this@ElementsActivity.baseContext.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE)
+        val uuidString = sharedPrefs.getString("UUID", null)
+        flowSender.sendFlowInformation(this.javaClass.simpleName, uuidString!!, "ENTER")
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ElementsCarouselLayoutBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-
-        collectionName = intent.getStringExtra("collectionName").toString()
-
+        window.navigationBarColor = resources.getColor(R.color.appBar)
         supportActionBar?.hide()
 
-        utils = Utils()
+        collectionName = intent.getStringExtra("collectionName").toString()
+        Log.d("NAMECHECK", collectionName)
+        val lastIndex = collectionName.split('_').lastIndex
+        val icon: String = collectionName.split('_')[lastIndex]
+        val name: String = collectionName.split('_')[lastIndex-1]
+        val collectionPosition: Int = collectionName.substringBefore("_").toInt()
 
-        elementsIntent = Intent(this, MainActivity::class.java)
+//        binding.icon.setImageResource(resources.getIdentifier(icon, "drawable", "pl.summernote.summernote"))
+        if (getFirstEmoji(icon) == null){
+            binding.icon.text = "\uD83C\uDDEC\uD83C\uDDE7"
+        } else {
+            binding.icon.text = icon
+        }
+        binding.title.text = name
+//        binding.title.setTextColor(color)
+//        binding.study.backgroundTintList = ColorStateList.valueOf(color)
 
-        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        val bottomBarBackground = binding.appBar.background as MaterialShapeDrawable
+        bottomBarBackground.shapeAppearanceModel = bottomBarBackground.shapeAppearanceModel
+            .toBuilder()
+            .setTopLeftCorner(CornerFamily.ROUNDED, 80f)
+            .setTopRightCorner(CornerFamily.ROUNDED, 80f)
+            .build()
+
+        elementsIntent = Intent(this, AddActivity::class.java)
+
+        binding.recyclerView.layoutManager = LinearLayoutManager(this@ElementsActivity, LinearLayoutManager.VERTICAL, false)
         binding.recyclerView.setHasFixedSize(true)
         binding.recyclerView.isNestedScrollingEnabled = false
-        val bundle = Bundle().apply {
-            putString("textPath", "$cacheDir/collections/$collectionName/texts/main.txt")
-        }
 
-        bottomSheetFragment = BottomSheetFragment()
-        bottomSheetFragment.arguments = bundle
+        binding.menuButton.setOnClickListener { menuItem ->
 
-        binding.showNoteButton.setOnClickListener {
-            if(File("$cacheDir/collections/$collectionName/texts/main.txt").exists()) {
-                bottomSheetFragment.show(supportFragmentManager, "noteTag")
+            val popupMenu = PopupMenu(this@ElementsActivity, binding.menuButton)
+            popupMenu.menuInflater.inflate(R.menu.menu_drawer, popupMenu.menu)
+            popupMenu.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    R.id.menu_item_logout -> {
+                        finish()
+                        true
+                    }
+                    R.id.menu_item_licenses -> {
+                        //                    val intent = Intent(this, LicensesActivity::class.java)
+                        //                    startActivity(intent)
+                        startActivity(Intent(this, OssLicensesMenuActivity::class.java))
+                        true
+                    }
+                    R.id.menu_item_delete -> {
+                        val yesno = PopupMenu(this@ElementsActivity, binding.menuButton)
+                        yesno.menuInflater.inflate(R.menu.menu_yes_no, yesno.menu)
+                        yesno.setOnMenuItemClickListener { item ->
+                            when (item.itemId) {
+                                R.id.confirm -> {
+                                    lifecycleScope.launch(Dispatchers.IO) {
+                                    }
+                                    true
+                                }
+                                R.id.decline -> {
+                                    true
+                                }
+                                else -> {false}
+                            }
+                        }
+                        yesno.show()
+                        true
+                    }
+                    else -> {false}
+                }
             }
-        }
-
-        binding.createNoteButton.setOnClickListener {
-            var fullNotesText = ""
-            val path = File("$cacheDir/collections/$collectionName/texts")
-            val txtFiles = path.listFiles { file ->
-                file.isFile && file.extension == "txt"
-            }
-
-            for (file in txtFiles) {
-                fullNotesText += file.readText()
-                Log.d("TXT", file.name)
-                Log.d("TXT", file.readText())
-            }
-            lifecycleScope.launch(Dispatchers.IO) {
-                sendRequest(fullNotesText)
-            }
-
-        }
-
-        binding.lengthSlider.addOnChangeListener{ slider, value, fromUser ->
-            lengthValue = value
+            popupMenu.show()
         }
 
         elementsArrayList = arrayListOf()
 
-
-
-        val directoryName = "collections/$collectionName/images"
+        val directoryName = "collections/$collectionName/elements"
         val subDirectory = File(cacheDir, directoryName)
-        subDirectory.mkdirs()
+
+        subDirectory.mkdir()
 
         if (subDirectory.exists() && subDirectory.isDirectory) {
-            val subFiles = subDirectory.listFiles { file ->
-                file.isFile
+            val subDirs = subDirectory.listFiles { file ->
+                file.isDirectory
             }
-
-            for (subFile in subFiles) {
-                elementsArrayList.add(Element("collections/$collectionName/images/${subFile.name}"))
+            val subDirsSorted = subDirs.sortedByDescending { it.name }
+            val subDirsReversed = subDirsSorted.reversed()
+            for (subDir in subDirsReversed) {
+                elementsArrayList.add(Element(subDir.name.substringAfter("_"), subDir.name.substringBefore("_").toInt()))
+                Log.d("TESTY", subDir.name)
             }
         }
+
+        if (elementsArrayList.isNotEmpty()){
+            binding.greeting2.visibility = View.GONE
+        }
+
         getElements(elementsArrayList)
-        scrollToLastPosition()
 
         binding.recyclerView.adapter = adapter
-        ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.UP) {
-            private val swipeThreshold = 1f // Set the swipe threshold to half the item's height
-
-            override fun onMove(v: RecyclerView, h: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
-
-            override fun onSwiped(h: RecyclerView.ViewHolder, dir: Int) {
-                val position = h.absoluteAdapterPosition
-                val view = h.itemView
-
-                // Calculate the vertical displacement of the swiped item
-                val swipeHeight = view.height.toFloat() * swipeThreshold
-                val currentHeight = view.translationY
-                val targetHeight = if (currentHeight < 0) -swipeHeight else swipeHeight
-
-                // Check if the swiped item has passed the swipe threshold
-                if (Math.abs(currentHeight) >= swipeHeight) {
-                    // If the item has passed the threshold, animate it off the screen
-                    val animator = ObjectAnimator.ofFloat(view, "translationY", currentHeight, targetHeight)
-                    animator.duration = 300
-                    animator.addListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            adapter.removeItem(position)
-                        }
-                    })
-                    animator.start()
-                } else {
-                    // If the item has not passed the threshold, animate it back to its original position
-                    val animator = ObjectAnimator.ofFloat(view, "translationY", currentHeight, 0f)
-                    animator.duration = 300
-                    animator.start()
-                }
-            }
-            override fun getSwipeDirs(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder): Int {
-                val position = viewHolder.absoluteAdapterPosition
-                return if (position == adapter.itemCount - 1) 0 else super.getSwipeDirs(recyclerView, viewHolder)
-            }
-        }).attachToRecyclerView(binding.recyclerView)
-
-
+        binding.addElement.setOnClickListener {
+            val popupDialogFragment = AddElementDialogFragment()
+            val args = Bundle()
+            args.putStringArrayList("names", adapter.getNames())
+            popupDialogFragment.arguments = args
+            popupDialogFragment.listener = this@ElementsActivity
+            popupDialogFragment.show(supportFragmentManager, "popup_dialog_fragment")
+        }
+        adapter.setOnListChangedListener(MyListChangedListener(binding))
+        binding.elementsCount.text = "sets: ${adapter.itemCount}"
+        binding.recyclerView.scrollToPosition(adapter.itemCount - 1)
     }
 
-    private suspend fun sendRequest(text: String) {
-        runOnUiThread {
-            binding.progress.visibility = View.VISIBLE
-        }
-        val gson = GsonBuilder()
-            .setLenient()
-            .create()
+    private fun getFirstEmoji(input: String): String? {
+        val emojiRegex = "[\\p{So}\\uD83C\\uDDE6-\\uD83C\\uDDFF]{2}"
+        val matchResult = emojiRegex.toRegex().find(input)
 
-        val okHttpClient = OkHttpClient.Builder()
-            .connectTimeout(6000, TimeUnit.SECONDS) // set connection timeout to 30 seconds
-            .readTimeout(6000, TimeUnit.SECONDS) // set read timeout to 30 seconds
-            .writeTimeout(6000, TimeUnit.SECONDS) // set write timeout to 30 seconds
-            .build()
-
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://3.71.98.173:80/")
-//            .baseUrl("http://192.168.0.178:80/")
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .client(okHttpClient)
-            .build()
-
-        val api = retrofit.create(ApiService::class.java)
-
-        val textJson = JSONObject()
-        textJson.put("text", text)
-        val jsonRequestBodyText = textJson.toString().toRequestBody("application/json".toMediaTypeOrNull())
-
-        val length = JSONObject()
-        length.put("length", lengthValue)
-        val jsonRequestBodyLength = length.toString().toRequestBody("application/json".toMediaTypeOrNull())
-
-
-        val response = withContext(Dispatchers.IO) {
-            api.uploadImage(
-                jsonRequestBodyText,
-                jsonRequestBodyLength
-            )
-        }
-        withContext(Dispatchers.Main) {
-            saveText(response)
-            binding.progress.visibility = View.GONE
-            bottomSheetFragment.show(supportFragmentManager, "noteTag")
+        val emojiRegex2 = "[\\p{So}]"
+        val matchResult2 = emojiRegex2.toRegex().find(input)
+        Log.d("DUPAEMOJI", matchResult?.value.toString())
+        Log.d("DUPAEMOJI", matchResult2?.value.toString())
+        if (matchResult?.value != null){
+            return matchResult.value
+        } else {
+            return matchResult2?.value
         }
     }
 
-    private fun saveText(text: String) {
-        val path = "$cacheDir/collections/$collectionName/texts"
-        File(path).mkdirs()
-        val filename = "main.txt"
-        val file = File(path, filename)
-        file.writeText(text)
-        Log.d("SAVE", file.path)
+    class MyListChangedListener(private val binding: ElementsCarouselLayoutBinding) : OnListChangedListener {
+        override fun onListChanged(newListSize: Int) {
+            binding.elementsCount.text = "sets: $newListSize"
+        }
+    }
+    override fun onElementAdded(elementName: String) {
+        val nextPosition = adapter.getItem(adapter.itemCount-1)+1
+        adapter.addItem(Element(elementName, nextPosition))
+        saveElement(nextPosition, elementName)
+        binding.greeting2.visibility = View.GONE
+    }
+
+    private fun saveElement(position: Int, elementName: String){
+
+        val f = File(cacheDir, "collections/$collectionName/elements/${position}_${elementName}")
+        f.mkdir()
     }
 
     override fun onPause() {
@@ -246,107 +217,53 @@ class ElementsActivity : AppCompatActivity() {
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
     }
 
-    private fun scrollToLastPosition() {
-        val lastItemIndex = binding.recyclerView.adapter!!.itemCount - 1
-        binding.recyclerView.scrollToPosition(lastItemIndex)
-    }
-
     private fun getElements(elements: ArrayList<Element>){
         elementsArrayList = elements
-        adapter = ElementsAdapter(elementsArrayList, cacheDir, context = baseContext)
+        adapter = ElementsAdapter(elementsArrayList, cacheDir, baseContext, collectionName, this.supportFragmentManager)
         adapter.setOnItemClickListener(object: ElementsAdapter.onItemClickListener{
 
             override fun onItemClick(view: View, position: Int, x: Int, y: Int) {
-                if (position == adapter.itemCount - 1) {
-                    if (ActivityCompat.checkSelfPermission(this@ElementsActivity, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                        ActivityCompat.requestPermissions(this@ElementsActivity, arrayOf(android.Manifest.permission.CAMERA), 123)
-                    } else {
-                        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-                        val photoFile = createImageFile()
-                        photoURI = FileProvider.getUriForFile(
-                            this@ElementsActivity,
-                            "${BuildConfig.APPLICATION_ID}.fileprovider",
-                            photoFile
-                        )
-                        intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+                elementsIntent.putExtra("collectionName", collectionName)
+                elementsIntent.putExtra("elementName", elementsArrayList[position].name)
+                elementsIntent.putExtra("position", elementsArrayList[position].position)
 
-                        val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                            this@ElementsActivity,
-                            androidx.core.util.Pair(
-                                view.findViewById(R.id.image_view),
-                                ViewCompat.getTransitionName(view.findViewById(R.id.image_view))
-                            )
-                        )
-
-                        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE, options.toBundle())
-                    }
-                } else {
-                    val options = ActivityOptionsCompat.makeSceneTransitionAnimation(
-                        this@ElementsActivity,
-                        androidx.core.util.Pair(
-                            view.findViewById(R.id.image_view),
-                            ViewCompat.getTransitionName(view.findViewById(R.id.image_view))
-                        )
-                    )
-
-                    elementsIntent.putExtra("imagePath", elementsArrayList[position].imagePath)
-                    elementsIntent.putExtra("collectionName", collectionName)
-                    elementsIntent.putExtra("position", position)
-                    startActivity(elementsIntent, options.toBundle())
-                }
+                startActivity(elementsIntent)
             }
 
         })
         binding.recyclerView.adapter = adapter
     }
 
-    private fun createImageFile(): File {
-        val timeStamp = System.currentTimeMillis()
-        val imageFileName = "NAME_$timeStamp"
-        val storageDir =
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-        return File.createTempFile(
-            imageFileName,  /* prefix */
-            ".jpg",  /* suffix */
-            storageDir /* directory */
-        )
+    override fun onElementChanged(elementNameNew: String, elementNameOld: String, index: Int) {
+        val realPosition = adapter.getItem(index)
+        adapter.changeItem(elementNameNew, index)
+        changeElement(elementNameNew, elementNameOld, realPosition)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
+    private fun changeElement(elementNameNew: String, elementNameOld: String, position: Int){
+        val path = File(cacheDir, "collections/$collectionName/elements/${position}_${elementNameOld}")
+        val pathNew = File(cacheDir, "collections/$collectionName/elements/${position}_${elementNameNew}")
+        Log.d("RENAMEPATH", path.path)
+        Log.d("RENAMEPATH", pathNew.path)
+        path.renameTo(pathNew)
 
-        if (resultCode == Activity.RESULT_OK) {
-
-            if (requestCode == REQUEST_IMAGE_CAPTURE) {
-
-                val inputStream: InputStream? = contentResolver.openInputStream(photoURI)
-                imageBitmap = BitmapFactory.decodeStream(inputStream)
-                val collectionDir = File(cacheDir, "collections/$collectionName/images")
-                val collectionDirFiles = collectionDir.listFiles()
-                val numberOfFile = (collectionDirFiles?.size ?: 0) + 1
-
-                utils.saveImage("collections/$collectionName/images/$numberOfFile.png", resizeBitmap(imageBitmap, 0.6f), cacheDir)
-                val dir = File(cacheDir, "collections/$collectionName/images")
-                val files = dir.listFiles()
-                if (files != null) {
-                    for (file in files) {
-                        Log.d("DIR FILE SAVED", file.name)
-                    }
-                } else {
-                    Log.d("DIR FILE SAVED", "EMPTY")
-                }
-                adapter.addItem("collections/$collectionName/images/$numberOfFile.png")
-            } else if (requestCode == REQUEST_IMAGE_SELECT) {
-                val inputStream: InputStream? =
-                    data?.data?.let { contentResolver.openInputStream(it) }
-                imageBitmap = BitmapFactory.decodeStream(inputStream)
-            }
+        val directory = File(cacheDir, "collections")
+        val directories = directory.listFiles { file -> file.isDirectory() }
+        directories.forEach {
+            Log.d("RENAMEPATH", it.name)
         }
     }
-    fun resizeBitmap(bitmap: Bitmap, scale: Float): Bitmap {
-        val width = (scale * bitmap.width).toInt()
-        val height = (scale * bitmap.height).toInt()
 
-        return Bitmap.createScaledBitmap(bitmap, width, height, true)
+    override fun onElementRemoved(elementNameOld: String, index: Int) {
+        val realPosition = adapter.getItem(index)
+        adapter.removeItem(index)
+        removeElement(elementNameOld, realPosition)
+        if (adapter.itemCount == 0) binding.greeting2.visibility = View.VISIBLE
+    }
+
+    private fun removeElement(elementNameOld: String, position: Int){
+        val path = File(cacheDir, "collections/$collectionName/elements/${position}_${elementNameOld}")
+        Log.d("DELETETEST", path.path)
+        path.deleteRecursively()
     }
 }

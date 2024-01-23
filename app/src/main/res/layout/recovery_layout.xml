@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/carousel_bg"
+    tools:context=".activities.LoginActivity"
+    android:clickable="false"
+    android:id="@+id/login">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:background="#40000000"
+        android:translationZ="999dp"
+        android:id="@+id/progress"
+        android:clickable="true"
+        android:focusable="true">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ImageView
+        android:clickable="false"
+        android:id="@+id/my_image1"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:background="@drawable/circle_gradient"
+        app:layout_constraintEnd_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:translationX="120dp"
+        android:translationY="-320dp"/>
+
+    <ImageView
+        android:clickable="false"
+        android:id="@+id/my_image2"
+        android:layout_width="350dp"
+        android:layout_height="350dp"
+        android:background="@drawable/circle_gradient"
+        app:layout_constraintStart_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="parent"
+        android:translationX="-280dp"
+        android:translationY="-200dp"/>
+
+    <ImageView
+        android:id="@+id/imageView3"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:clickable="false"
+        android:src="@drawable/logo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/linearLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/imageView3">
+
+        <EditText
+            android:id="@+id/email"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_margin="20dp"
+            android:background="@drawable/round_text_background"
+            android:drawableStart="@drawable/ic_baseline_alternate_email_24"
+            android:drawablePadding="10dp"
+            android:drawableTint="@color/lightBlue"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:padding="10dp"
+            android:textColor="@color/betterWhite"
+            android:textColorHint="@color/hintColor" />
+
+        <EditText
+            android:id="@+id/new_password1"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/round_text_background"
+            android:drawableStart="@drawable/ic_baseline_password_24"
+            android:drawablePadding="10dp"
+            android:drawableTint="@color/lightBlue"
+            android:hint="New Password"
+            android:inputType="textEmailAddress"
+            android:padding="10dp"
+            android:textColor="@color/betterWhite"
+            android:textColorHint="@color/hintColor" />
+
+        <EditText
+            android:id="@+id/new_password2"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/round_text_background"
+            android:drawableStart="@drawable/ic_baseline_password_24"
+            android:drawablePadding="10dp"
+            android:drawableTint="@color/lightBlue"
+            android:hint="Repeat New Password"
+            android:inputType="textEmailAddress"
+            android:padding="10dp"
+            android:textColor="@color/betterWhite"
+            android:textColorHint="@color/hintColor" />
+
+        <EditText
+            android:id="@+id/code"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/round_text_background"
+            android:drawableStart="@drawable/ic_baseline_123_24"
+            android:drawablePadding="10dp"
+            android:drawableTint="@color/lightBlue"
+            android:hint="Recovery Code"
+            android:inputType="textEmailAddress"
+            android:padding="10dp"
+            android:textColor="@color/betterWhite"
+            android:textColorHint="@color/hintColor" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/change_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/rect_gradient"
+            android:text="Change Password"
+            android:textAllCaps="false"
+            android:textColor="@color/betterWhite"
+            android:textSize="21sp"
+            app:backgroundTint="@null" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/send_code"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:backgroundTint="@color/appBar"
+            android:padding="10dp"
+            android:text="Send Recovery Code"
+            android:textAlignment="center"
+            android:textAllCaps="false"
+            android:textColor="@color/betterWhite"
+            android:textSize="21sp"
+            app:cornerRadius="30dp" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

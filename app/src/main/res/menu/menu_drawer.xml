@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/menu_item_logout"
+        android:title="logout"
+        android:visible="false"
+        android:icon="@drawable/ic_baseline_logout_24" />
+    <item
+        android:id="@+id/menu_item_licenses"
+        android:title="licenses"
+        android:icon="@drawable/ic_baseline_local_police_24" />
+    <item
+        android:id="@+id/menu_item_delete"
+        android:visible="false"
+        android:title="delete account" />
+</menu>

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "728933764869",
+    "project_id": "briefpic",
+    "storage_bucket": "briefpic.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:728933764869:android:51762a3722c967a7dcb16c",
+        "android_client_info": {
+          "package_name": "pl.summernote.summernote"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "728933764869-76bru9qlhtp61a94pqu75dorj11mdu5q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "pl.summernote.summernote",
+            "certificate_hash": "0fd9492e201df79cd70f1d8d4472231b483cf63d"
+          }
+        },
+        {
+          "client_id": "728933764869-1g74ottdgpvielpbk78rjop4iom0f3pj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAdEwVNlHf-q7ssBXQeNbiodDT7Ds7bUyI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "728933764869-1g74ottdgpvielpbk78rjop4iom0f3pj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

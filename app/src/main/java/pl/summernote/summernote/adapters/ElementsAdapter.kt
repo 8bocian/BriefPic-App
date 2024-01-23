@@ -1,115 +1,167 @@
 package pl.summernote.summernote.adapters
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
+import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.GridLayout
 import android.widget.ImageView
-import android.widget.PopupMenu
 import android.widget.TextView
-import android.widget.Toast
+import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import pl.summernote.summernote.R
-import pl.summernote.summernote.Utils
-import pl.summernote.summernote.dataclasses.Collection
 import pl.summernote.summernote.dataclasses.Element
-import java.io.ByteArrayOutputStream
+import pl.summernote.summernote.dataclasses.FlashCard
+import pl.summernote.summernote.fragments.ChangeElementDialogFragment
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
 
+interface OnElementsListChangedListener {
+    fun onListChanged(newListSize: Int)
+}
 
 class ElementsAdapter(
-    private val elementsList: ArrayList<Element>,
+    private var elementsList: ArrayList<Element>,
     private val cacheDir: File,
-    private val context: Context
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+    private val context: Context,
+    private val collectionName: String,
+    private val fragmentManager: FragmentManager,
+    ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private lateinit var nListener: onItemClickListener
-
-    init {
-        var exists = false
-        for (collection in elementsList) {
-            if (collection.imagePath == "predef/blank.jpeg") {
-                exists = true
-                break
-            }
-        }
-        if (!exists) {
-            elementsList.add(Element("predef/blank.jpeg"))
-        }
-    }
+    private var onListChangedListener: OnListChangedListener? = null
 
     interface onItemClickListener {
         fun onItemClick(view: View, position: Int, x: Int, y: Int)
     }
-
+    fun setOnListChangedListener(listener: OnListChangedListener) {
+        onListChangedListener = listener
+    }
     fun setOnItemClickListener(listener: onItemClickListener) {
         nListener = listener
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return if (position == elementsList.size - 1) {
-            VIEW_TYPE_ADD
-        } else {
-            VIEW_TYPE_ITEM
-        }
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        val itemView = when (viewType) {
-            VIEW_TYPE_ADD -> LayoutInflater.from(parent.context)
-                .inflate(R.layout.element_layout, parent, false)
-            else -> LayoutInflater.from(parent.context)
-                .inflate(R.layout.element_layout, parent, false)
-        }
+        val itemView = LayoutInflater.from(parent.context)
+            .inflate(R.layout.element_layout, parent, false)
         return ViewHolder(itemView, nListener)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        holder.itemView.isLongClickable = true;
-        if (position != elementsList.size - 1) {
-            val currentItem = elementsList[position]
-            val file1 = File(cacheDir, currentItem.imagePath)
-            val file = File(file1.path)
-            val fis = FileInputStream(file)
-            val bitmap = BitmapFactory.decodeStream(fis)
-            (holder as ViewHolder).imageView.setImageBitmap(Utils().rotateImage(bitmap))
+        holder.itemView.isLongClickable = true
+        val currentItem = elementsList[position]
+        val name: TextView = holder.itemView.findViewById(R.id.element_name)
+        val count: TextView = holder.itemView.findViewById(R.id.flashcards_count)
+
+        name.text = currentItem.name
+        val flashcardsArrayList = readJsonFromFile(File(cacheDir, "collections/$collectionName/elements/${currentItem.position}_${currentItem.name}/main.json"))
+        Log.d("LICZNIK", flashcardsArrayList.toString())
+        count.text = "flashcards: ${flashcardsArrayList.size}"
+    }
+
+    fun readJsonFromFile(file: File): ArrayList<FlashCard> {
+        Log.d("ARRAYLIST", file.path)
+        if (!file.exists()) {
+            file.createNewFile()
+            return arrayListOf()
         }
+        Log.d("CURRENTITEM", file.readText())
+        if (file.readText().isEmpty()){
+            return arrayListOf()
+        }
+        val gson = Gson()
+        val type = object : TypeToken<ArrayList<FlashCard>>() {}.type
+        return try {
+            gson.fromJson(file.readText(), type)
+        } catch (e: java.lang.Exception){
+            Log.d("ERROR", file.readText())
+            arrayListOf<FlashCard>()
+        }
+    }
+
+    fun getNames(): ArrayList<String>{
+        val names = arrayListOf<String>()
+        elementsList.forEach {
+            names.add(it.name)
+        }
+        return names
     }
 
     override fun getItemCount(): Int {
         return elementsList.size
     }
 
-    fun addItem(path: String) {
-        elementsList.add(elementsList.size - 1, Element(path))
-        notifyItemInserted(elementsList.size - 2)
+    fun getItem(position: Int): Int {
+        return if (elementsList.isEmpty()) {
+            -1
+        } else {
+            elementsList[position].position
+        }
+    }
+
+    fun addItem(element: Element) {
+        elementsList.add(element)
+        notifyItemInserted(elementsList.size)
+        onListChangedListener?.onListChanged(elementsList.size)
     }
 
     fun removeItem(position: Int) {
         elementsList.removeAt(position)
         notifyItemRemoved(position)
+        onListChangedListener?.onListChanged(elementsList.size)
+    }
+
+    fun changeItem(elementNameNew: String, index: Int){
+        elementsList[index].name = elementNameNew
+        notifyItemChanged(index)
+        notifyDataSetChanged()
     }
 
     inner class ViewHolder(itemView: View, listener: onItemClickListener) :
-        RecyclerView.ViewHolder(itemView) {
+        RecyclerView.ViewHolder(itemView), View.OnLongClickListener {
         val imageView: ImageView = itemView.findViewById(R.id.image_view)
-
+        val elementName: TextView = itemView.findViewById(R.id.element_name)
         init {
             itemView.setOnClickListener { view ->
                 listener.onItemClick(view, adapterPosition, 0, 0)
             }
-        }
-    }
+            itemView.setOnLongClickListener {
+                val position = adapterPosition
+                val dialogFragment = ChangeElementDialogFragment()
+                val args = Bundle()
+                val flashcardsCount = readJsonFromFile(File(cacheDir, "collections/$collectionName/elements/${elementsList[adapterPosition].position}_${elementsList[adapterPosition].name}/main.json")).size.toString()
 
-    companion object {
-        private const val VIEW_TYPE_ITEM = 0
-        private const val VIEW_TYPE_ADD = 1
+                Log.d("COUNTTEXT", flashcardsCount)
+                args.putString("count", flashcardsCount)
+                args.putString("name", elementName.text.toString())
+                args.putStringArrayList("names", getNames())
+                args.putInt("index", position)
+                dialogFragment.arguments = args
+                dialogFragment.show(fragmentManager, "MyDialogFragment")
+                true
+            }
+        }
+        fun getNames(): ArrayList<String>{
+            val names = arrayListOf<String>()
+            elementsList.forEach {
+                names.add(it.name)
+            }
+            names.remove(elementName.text.toString())
+            return names
+        }
+
+        override fun onLongClick(v: View?): Boolean {
+            val position = adapterPosition
+            if (position != RecyclerView.NO_POSITION) {
+                val dialogFragment = ChangeElementDialogFragment()
+                dialogFragment.show(fragmentManager, "MyDialogFragment")
+                return true
+            }
+            return false
+        }
     }
 }
 

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:clickable="false"
+    android:background="@drawable/popup_background">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/background"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_margin="10dp"
+        android:adjustViewBounds="true"
+        android:alpha="0.3"
+        android:background="@drawable/background_transparent_round"
+        android:transitionName="toBackground"
+        app:layout_constraintBottom_toTopOf="@+id/collection_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/image_view"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_margin="20dp"
+        android:adjustViewBounds="true"
+        android:background="@drawable/border"
+        android:transitionName="toBackground"
+        app:layout_constraintBottom_toTopOf="@+id/collection_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:layout_marginBottom="10dp"
+        android:id="@+id/collection_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:hint="Subject name"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toTopOf="@+id/add_collection"
+        app:layout_constraintEnd_toEndOf="@+id/background"
+        app:layout_constraintStart_toStartOf="@+id/background" />
+
+    <EditText
+        android:id="@+id/emojiEditText"
+        android:layout_width="130dp"
+        android:layout_height="130dp"
+        android:textAlignment="center"
+        android:background="@null"
+        android:text="🇬🇧"
+        android:textSize="70dp"
+        android:textCursorDrawable="@null"
+        app:layout_constraintBottom_toTopOf="@+id/collection_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/add_collection"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:backgroundTint="@color/lightBlue"
+        android:insetLeft="0dp"
+        android:insetTop="0dp"
+        android:insetRight="0dp"
+        android:insetBottom="0dp"
+        app:icon="@drawable/ic_baseline_done_24_white"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconSize="35dp"
+        app:iconTint="@color/black"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:shapeAppearanceOverlay="@style/roundedImageView" />
+</androidx.constraintlayout.widget.ConstraintLayout>

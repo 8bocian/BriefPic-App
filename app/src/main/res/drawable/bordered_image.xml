@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The image layer -->
+    <item>
+        <color android:color="@color/color5"/>
+    </item>
+    <!-- The border layer -->
+    <item>
+        <shape android:shape="rectangle">
+            <stroke android:width="5dp" android:color="#FFFFFFFF" />
+        </shape>
+    </item>
+</layer-list>

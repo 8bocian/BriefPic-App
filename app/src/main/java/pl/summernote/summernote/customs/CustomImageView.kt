@@ -17,8 +17,8 @@ class CustomImageView(context: Context, attrs: AttributeSet) : AppCompatImageVie
     private val paint = Paint()
     private val paintNum = Paint()
     private var touchedPoint: Point? = null
-    private var touchX = 0f
-    private var touchY = 0f
+    var touchX = 0f
+    var touchY = 0f
 
     init {
         paint.color = Color.RED
@@ -30,40 +30,48 @@ class CustomImageView(context: Context, attrs: AttributeSet) : AppCompatImageVie
         paintNum.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
 
         setOnTouchListener { _, event ->
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    touchedPoint = findClosestPoint(event.x, event.y)
-                    touchedPoint?.let {
-                        touchX = event.x - it.x
-                        touchY = event.y - it.y
-                        Log.d("TOUCH", "DOWN")
+            try {
+                when (event.action) {
+                    MotionEvent.ACTION_DOWN -> {
+                        touchedPoint = findClosestPoint(event.x, event.y)
+                        touchedPoint?.let {
+                            touchX = event.x - it.x
+                            touchY = event.y - it.y
+                            Log.d("TOUCH", "DOWN")
+                        }
+                        true
                     }
-                    true
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    touchedPoint?.let {
-                        it.x = event.x - touchX
-                        it.y = event.y - touchY
-                        if (!isInsideBoundaries(it)) {
-                            points.remove(it)
+                    MotionEvent.ACTION_MOVE -> {
+                        touchedPoint?.let {
+                            it.x = event.x - touchX
+                            it.y = event.y - touchY
+                            if (!isInsideBoundaries(it)) {
+                                points.remove(it)
+                                touchedPoint = null
+                            }
+                            Log.d("TOUCH", "MOVE")
+                            invalidate()
+                        }
+                        true
+                    }
+                    MotionEvent.ACTION_UP -> {
+                        touchedPoint?.let {
+                            if (isInsideBoundaries(it)) {
+                                performClick()
+                            }
                             touchedPoint = null
+                            invalidate()
                         }
-                        Log.d("TOUCH", "MOVE")
-                        invalidate()
+                        true
                     }
-                    true
+                    else -> false
                 }
-                MotionEvent.ACTION_UP -> {
-                    touchedPoint?.let {
-                        if (isInsideBoundaries(it)) {
-                            performClick()
-                        }
-                        touchedPoint = null
-                        invalidate()
-                    }
-                    true
-                }
-                else -> false
+            } catch (e: java.lang.Exception){
+                Log.d("ERROR", e.stackTrace.toString())
+                Log.d("ERROR", e.localizedMessage.toString())
+                Log.d("ERROR", e.message.toString())
+                Log.d("ERROR", e.cause.toString())
+                false
             }
         }
     }
@@ -83,19 +91,6 @@ class CustomImageView(context: Context, attrs: AttributeSet) : AppCompatImageVie
             }
         }
         return closestPoint
-    }
-
-    private fun constrainToBounds(point: Point) {
-        if (point.x < 0) {
-            point.x = 0f
-        } else if (point.x > width) {
-            point.x = width.toFloat()
-        }
-        if (point.y < 0) {
-            point.y = 0f
-        } else if (point.y > height) {
-            point.y = height.toFloat()
-        }
     }
 
     override fun performClick(): Boolean {
@@ -118,13 +113,17 @@ class CustomImageView(context: Context, attrs: AttributeSet) : AppCompatImageVie
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        for ((index, point) in points.withIndex()) {
-            canvas?.drawCircle(point.x, point.y, 30f, paint)
-            canvas?.drawText("${index+1}", point.x, point.y, paintNum)
+        try {
+            for ((index, point) in points.withIndex()) {
+                Log.d("DRAWPOINT", "$index, $point")
+                canvas?.drawCircle(point.x, point.y, 30f, paint)
+                canvas?.drawText("${index + 1}", point.x, point.y, paintNum)
+            }
+        } catch (e: java.lang.Exception){
+            Log.d("ERROR", e.stackTrace.toString())
+            Log.d("ERROR", e.localizedMessage.toString())
+            Log.d("ERROR", e.message.toString())
+            Log.d("ERROR", e.cause.toString())
         }
-//        touchedPoint?.let {
-//            canvas?.drawCircle(it.x, it.y, 30f, paint)
-//            canvas?.drawText("${points.size + 1}", it.x, it.y, paintNum)
-//        }
     }
 }
